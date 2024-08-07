@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Data Mahasiswa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Admin</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/absensi">Absensi</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mahasiswa">Mahasiswa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/recognize">Recognize</a>
+                    </li>
+                </ul>
+            </div>
+            <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+        </div>
+    </nav>
+
+    <div class="card container mt-5">
+        <div class="card-body">
+            <h1>Data Mahasiswa</h1>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">Tambah Data
+                Mahasiswa</button>
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Nama</th>
+                        <th>NIM</th>
+                        <th>Jurusan</th>
+                        <th>Angkatan</th>
+                        <th>Foto</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                        <td>{{ row[4] }}</td>
+                        <td><img src="{{ row[5] }}" alt="Foto Mahasiswa" width="100"></td>
+                        <td>
+                            <form action="{{ url_for('delete_mahasiswa', id=row[0]) }}" method="POST"
+                                style="display:inline;">
+                                <input type="submit" value="Hapus" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Anda yakin ingin menghapus data ini?');">
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Tambah Data Mahasiswa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/mahasiswa" method="post">
+                        <div class="mb-3">
+                            <label for="nama" class="form-label">Nama</label>
+                            <input type="text" class="form-control" id="nama" name="nama" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nim" class="form-label">NIM</label>
+                            <input type="text" class="form-control" id="nim" name="nim" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jurusan" class="form-label">Jurusan</label>
+                            <input type="text" class="form-control" id="jurusan" name="jurusan" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="angkatan" class="form-label">Angkatan</label>
+                            <input type="text" class="form-control" id="angkatan" name="angkatan" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="foto" class="form-label">Foto</label>
+                            <div>
+                                <video id="video" width="100%" autoplay></video>
+                                <canvas id="canvas" style="display:none;"></canvas>
+                                <img id="captured-image" style="display:none; width: 100%;" alt="Captured Image">
+                            </div>
+                            <button type="button" id="snap" class="btn btn-secondary mt-2">Ambil Foto</button>
+                            <button type="button" id="retry" class="btn btn-warning mt-2" style="display:none;">Ambil
+                                Ulang</button>
+                            <input type="hidden" name="foto_data_url" id="foto_data_url">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const snap = document.getElementById('snap');
+        const retry = document.getElementById('retry');
+        const fotoDataUrl = document.getElementById('foto_data_url');
+        const capturedImage = document.getElementById('captured-image');
+
+        // Akses kamera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((err) => {
+                console.error("Error accessing camera: ", err);
+            });
+
+        // Ambil foto
+        snap.addEventListener("click", () => {
+            // Set ukuran canvas agar sesuai dengan ukuran video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/png');
+            fotoDataUrl.value = dataURL;
+
+            // Sembunyikan kamera dan tampilkan gambar hasil tangkapan
+            video.style.display = 'none';
+            capturedImage.src = dataURL;
+            capturedImage.style.display = 'block';
+            snap.style.display = 'none';
+            retry.style.display = 'inline-block';
+        });
+
+        // Ambil ulang foto
+        retry.addEventListener("click", () => {
+            capturedImage.style.display = 'none';
+            video.style.display = 'block';
+            snap.style.display = 'inline-block';
+            retry.style.display = 'none';
+            fotoDataUrl.value = ''; // Reset foto data
+        });
+    </script>
+</body>
+
+</html>

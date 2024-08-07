@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Recognition</title>
+    <style>
+        .video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+        }
+        .video {
+            width: 640px;
+            height: 480px;
+            border: 5px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <img src="{{ url_for('video_feed') }}" class="video">
+    </div>
+</body>
+</html>
